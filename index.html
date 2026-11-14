@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>CPR BEAT</title>
+<style>
+:root{--bg:#0A1A44;--bg2:#10286B;--card:#14306F;--sky:#5BC8FF;--sky2:#9BDFFF;--w:#fff;--mut:#9FB3DE;--ok:#4FE3B0;--bad:#FF7A8A;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{height:100%;margin:0}
+body{background:linear-gradient(180deg,var(--bg),#06102B);color:var(--w);font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;overflow:hidden;touch-action:manipulation}
+#app{height:100%;display:flex;flex-direction:column;max-width:480px;margin:0 auto}
+.screen{display:none;flex:1;overflow-y:auto;padding:16px 18px 20px}
+.screen.on{display:block}
+h1{font-size:30px;letter-spacing:2px;margin:6px 0 2px}
+h1 b{color:var(--sky)}
+h2{font-size:21px;margin:4px 0 12px}
+p{color:var(--mut);line-height:1.5;margin:6px 0}
+.card{background:var(--card);border-radius:18px;padding:16px;margin:12px 0;border:1px solid rgba(91,200,255,.18)}
+.btn{display:block;width:100%;border:0;border-radius:16px;padding:16px;font-size:17px;font-weight:700;background:var(--sky);color:#06214F;margin:10px 0}
+.btn.sec{background:transparent;color:var(--sky);border:1.5px solid var(--sky)}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.4}
+.warn{font-size:13px;background:rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;color:var(--sky2)}
+.step{display:flex;gap:10px;align-items:center;margin:8px 0;color:var(--w);font-size:15px}
+.step i{font-style:normal;width:26px;height:26px;border-radius:50%;background:var(--sky);color:#06214F;display:grid;place-items:center;font-weight:800;font-size:13px;flex:none}
+.opt{display:block;width:100%;text-align:left;background:var(--bg2);color:var(--w);border:1.5px solid transparent;border-radius:14px;padding:14px;margin:8px 0;font-size:15px;line-height:1.4}
+.opt.ok{border-color:var(--ok);background:rgba(79,227,176,.15)}
+.opt.no{border-color:var(--bad);background:rgba(255,122,138,.15)}
+.bar{height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;margin-bottom:12px}
+.bar div{height:100%;background:var(--sky);width:0;transition:width .3s}
+.track{display:flex;align-items:center;gap:12px;background:var(--card);border:1.5px solid transparent;border-radius:16px;padding:14px;margin:8px 0;width:100%;color:var(--w);text-align:left}
+.track.sel{border-color:var(--sky);box-shadow:0 0 0 3px rgba(91,200,255,.2)}
+.track.lock{opacity:.5}
+.track .bpm{margin-left:auto;font-weight:800;color:var(--sky);font-size:18px;text-align:right}
+.track small{display:block;color:var(--mut);font-size:12px}
+.tag{font-size:11px;background:var(--bg2);color:var(--sky2);padding:2px 7px;border-radius:8px;margin-left:4px}
+#tabs{display:flex;background:#071334;border-top:1px solid rgba(91,200,255,.2);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px))}
+#tabs button{flex:1;background:none;border:0;color:var(--mut);font-size:11px;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:3px}
+#tabs button span{font-size:20px}
+#tabs button.on{color:var(--sky)}
+.stage{position:relative;height:340px;display:grid;place-items:center;margin:8px 0}
+.target,.ring{position:absolute;width:120px;height:120px;border-radius:50%}
+.target{border:5px solid var(--w);background:radial-gradient(circle,rgba(91,200,255,.45),rgba(91,200,255,.08));display:grid;place-items:center;font-size:15px;font-weight:800;color:var(--w);transition:transform .08s}
+.target.hit{transform:scale(.92);background:rgba(91,200,255,.8)}
+.ring{border:4px solid var(--sky);pointer-events:none}
+.fb{height:30px;text-align:center;font-weight:800;font-size:20px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:var(--bg2);border-radius:14px;padding:12px}
+.stat b{display:block;font-size:24px;color:var(--sky)}
+.stat span{font-size:12px;color:var(--mut)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+td,th{padding:8px 4px;text-align:center;border-bottom:1px solid rgba(255,255,255,.1)}
+th{color:var(--mut);font-weight:600}
+.bars{display:flex;align-items:flex-end;gap:2px;height:70px;margin-top:8px}
+.bars div{flex:1;background:var(--sky);border-radius:2px 2px 0 0;min-height:2px}
+.bars div.x{background:var(--bad)}
+.pad{height:260px;border-radius:26px;background:radial-gradient(circle,#1B4CA8,var(--card));border:2px solid var(--sky);display:grid;place-items:center;font-size:28px;font-weight:800;margin:10px 0}
+.pad:active{background:var(--sky);color:#06214F}
+.big{font-size:56px;font-weight:800;color:var(--sky);text-align:center}
+.log{font-size:12px;color:var(--mut);word-break:break-all;line-height:1.6}
+</style>
+</head>
+<body>
+<div id="app">
+
+<section class="screen on" id="s-home">
+  <h1>CPR <b>BEAT</b></h1>
+  <p>익숙한 박자로 심폐소생술 가슴압박 리듬(분당 100~120회)을 익히는 학습 앱</p>
+  <div class="warn">⚠️ 교육용 앱입니다. 실제 응급상황에서는 즉시 119에 신고하고 상담원의 안내를 따르세요.</div>
+  <div class="card">
+    <h2>추천 학습 순서</h2>
+    <div class="step"><i>1</i>응급상황 판단 퀴즈</div>
+    <div class="step"><i>2</i>무음 테스트 (학습 전 기준 측정)</div>
+    <div class="step"><i>3</i>음악 선택 → 리듬게임</div>
+    <div class="step"><i>4</i>무음 테스트 (학습 후 측정)</div>
+    <div class="step"><i>5</i>결과 분석으로 비교</div>
+  </div>
+  <button class="btn" data-go="quiz">퀴즈 시작</button>
+  <button class="btn sec" data-go="music">바로 리듬게임 하러 가기</button>
+</section>
+
+<section class="screen" id="s-quiz"></section>
+
+<section class="screen" id="s-music">
+  <h2>음악 선택</h2>
+  <p>100~120 BPM 박자를 고르세요. 저작권 문제가 없는 내장 박자 소리가 기본입니다.</p>
+  <div id="tracks"></div>
+  <p class="log">허가된 음원은 코드의 TRACKS 배열에 src와 licensed:true를 넣으면 바로 활성화됩니다.</p>
+  <button class="btn" id="startGame">리듬게임 시작</button>
+</section>
+
+<section class="screen" id="s-game">
+  <h2 id="gTitle">리듬게임</h2>
+  <div class="bar"><div id="gBar"></div></div>
+  <div class="stage" id="stage">
+    <div class="ring" id="ring"></div>
+    <div class="target" id="target">TAP</div>
+  </div>
+  <div class="fb" id="fb">시작 버튼을 누르세요</div>
+  <button class="btn" id="gBtn">시작 (4박 카운트인)</button>
+  <button class="btn sec" id="gStop">그만하기</button>
+</section>
+
+<section class="screen" id="s-silent">
+  <h2>무음 테스트</h2>
+  <p>소리 없이 CPR 속도(100~120 BPM)라고 생각하는 박자로 20번 터치하세요. 첫 터치부터 측정이 시작됩니다.</p>
+  <div class="big" id="sBpm">--</div>
+  <p style="text-align:center" id="sCnt">0 / 20</p>
+  <div class="pad" id="pad">터치</div>
+  <button class="btn sec" id="sReset">다시 하기</button>
+</section>
+
+<section class="screen" id="s-result"></section>
+
+<nav id="tabs">
+  <button data-go="home" class="on"><span>🏠</span>홈</button>
+  <button data-go="quiz"><span>🩺</span>퀴즈</button>
+  <button data-go="music"><span>🎵</span>음악</button>
+  <button data-go="silent"><span>🔇</span>무음</button>
+  <button data-go="result"><span>📊</span>결과</button>
+</nav>
+</div>
+
+<script>
+/* ===== 곡 카탈로그: 허가된 음원은 src(파일 경로)와 licensed:true 로 추가 ===== */
+const TRACKS=[
+ {id:'m100',title:'기본 박자 100',artist:'내장 박자 소리',bpm:100,src:null,licensed:true},
+ {id:'m110',title:'기본 박자 110',artist:'내장 박자 소리',bpm:110,src:null,licensed:true},
+ {id:'m120',title:'기본 박자 120',artist:'내장 박자 소리',bpm:120,src:null,licensed:true},
+ // 예시: {id:'k1',title:'곡명',artist:'가수',bpm:110,src:'audio/k1.mp3',offset:0,licensed:true}
+ {id:'k1',title:'Dynamite',artist:'BTS',bpm:114,src:null,licensed:false},
+ {id:'k2',title:'Butter',artist:'BTS',bpm:110,src:null,licensed:false}
+];
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const fmt=(n,d=0)=>isFinite(n)?n.toFixed(d):'--';
+const mean=a=>a.reduce((x,y)=>x+y,0)/a.length;
+const sd=a=>{const m=mean(a);return Math.sqrt(mean(a.map(x=>(x-m)**2)))};
+let store={sessions:[],quiz:null};
+try{const s=localStorage.getItem('cprbeat');if(s)store=JSON.parse(s)}catch(e){}
+const save=()=>{try{localStorage.setItem('cprbeat',JSON.stringify(store))}catch(e){}};
+
+function go(n){
+  stopGame(true);
+  $$('.screen').forEach(s=>s.classList.toggle('on',s.id==='s-'+n));
+  $$('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.go===n));
+  if(n==='quiz')quizStart(); if(n==='music')drawTracks(); if(n==='result')drawResult(); if(n==='silent')silentReset();
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b)go(b.dataset.go)});
+
+/* ===== 1. 퀴즈 ===== */
+const QS=[
+ {q:'길에서 사람이 쓰러져 있어요. 가장 먼저 할 일은?',o:['바로 가슴압박을 시작한다','주변 안전을 확인하고 어깨를 두드려 반응을 확인한다','입에 물을 먹인다'],a:1,e:'안전 확인 후 어깨를 두드리며 큰 소리로 반응을 확인합니다.'},
+ {q:'환자가 반응이 없어요. 다음 행동은?',o:['업고 병원으로 뛰어간다','지켜보며 기다린다','119 신고와 자동심장충격기(AED) 요청을 한다'],a:2,e:'주변 사람을 지목해 “119 신고해 주세요, AED 가져다 주세요”라고 요청합니다.'},
+ {q:'올바른 대처 순서는?',o:['반응 확인 → 119·AED 요청 → 호흡 확인 → 가슴압박','가슴압박 → 반응 확인 → 119 신고','119 신고 → 물 먹이기 → 가슴압박'],a:0,e:'반응 확인 → 도움 요청 → 호흡 확인 → 가슴압박 순서입니다.'},
+ {q:'가슴압박의 속도와 깊이는?',o:['분당 60회, 약 2cm','분당 100~120회, 약 5~6cm','분당 150회 이상, 약 10cm'],a:1,e:'분당 100~120회, 성인 기준 약 5~6cm 깊이로 강하고 빠르게 압박합니다.'},
+ {q:'가슴압박 위치는?',o:['배 윗부분','가슴뼈(흉골) 아래쪽 절반','왼쪽 가슴 위쪽'],a:1,e:'가슴 중앙, 가슴뼈 아래쪽 절반에 손바닥 뒤꿈치를 둡니다.'},
+ {q:'AED가 도착했어요. 올바른 행동은?',o:['전원을 켜고 음성 안내에 따라 패드를 붙인다','가슴압박을 멈추고 구급대를 기다린다','의료인만 사용할 수 있으니 쓰지 않는다'],a:0,e:'AED는 누구나 사용할 수 있으며 음성 안내를 따르면 됩니다.'}
+];
+let qi=0,qs=0,qo=[];
+function quizStart(){qi=0;qs=0;quizShow()}
+function quizShow(){
+  const el=$('#s-quiz');
+  if(qi>=QS.length){
+    store.quiz={score:qs,total:QS.length,at:Date.now()};save();
+    el.innerHTML=`<h2>퀴즈 완료</h2><div class="card"><div class="big">${qs} / ${QS.length}</div><p style="text-align:center">${qs===QS.length?'완벽해요! 이제 리듬을 익혀 볼까요?':'틀린 문제는 다시 풀며 복습해 보세요.'}</p></div>
+    <button class="btn" data-go="silent">무음 테스트로 기준 측정</button><button class="btn sec" id="qAgain">퀴즈 다시 풀기</button>`;
+    $('#qAgain').onclick=quizStart;return;
+  }
+  const q=QS[qi];
+  qo=q.o.map((t,i)=>({t,c:i===q.a})).sort(()=>Math.random()-.5);
+  el.innerHTML=`<h2>응급상황 판단 퀴즈</h2><div class="bar"><div style="width:${qi/QS.length*100}%"></div></div>
+   <p>문제 ${qi+1} / ${QS.length}</p><div class="card"><b style="font-size:18px;line-height:1.4">${q.q}</b></div>
+   ${qo.map((o,i)=>`<button class="opt" data-i="${i}">${o.t}</button>`).join('')}<div id="qx"></div>`;
+  $$('#s-quiz .opt').forEach(b=>b.onclick=()=>{
+    const ch=qo[b.dataset.i];
+    $$('#s-quiz .opt').forEach((x,i)=>{x.disabled=true;x.classList.add(qo[i].c?'ok':(x===b?'no':''))});
+    if(ch.c)qs++;
+    $('#qx').innerHTML=`<div class="card"><b>${ch.c?'✅ 정답!':'❌ 오답'}</b><p>${q.e}</p></div><button class="btn" id="qn">${qi+1<QS.length?'다음 문제':'결과 보기'}</button>`;
+    $('#qn').onclick=()=>{qi++;quizShow()};
+  });
+}
+
+/* ===== 2. 음악 선택 ===== */
+let sel=TRACKS[1];
+function drawTracks(){
+  $('#tracks').innerHTML=TRACKS.map(t=>`<button class="track ${t.id===sel.id?'sel':''} ${t.licensed?'':'lock'}" data-id="${t.id}">
+   <span style="font-size:26px">${t.licensed?'🎧':'🔒'}</span><div><b>${t.title}</b><small>${t.artist}${t.licensed?'':' · 허가 음원 필요'}</small></div><div class="bpm">${t.bpm}<small>BPM</small></div></button>`).join('');
+  $$('.track').forEach(b=>b.onclick=()=>{const t=TRACKS.find(x=>x.id===b.dataset.id);if(!t.licensed){alert('허가된 음원이 등록되면 사용할 수 있어요. 지금은 내장 박자를 선택해 주세요.');return}sel=t;drawTracks()});
+}
+$('#startGame').onclick=()=>{go('game');$('#gTitle').textContent=`${sel.title} · ${sel.bpm} BPM`};
+
+/* ===== 3. 리듬게임 ===== */
+let ctx=null,G=null,raf=0,srcNode=null;
+const COUNTIN=4,SCORED=32;
+function audio(){if(!ctx)ctx=new (window.AudioContext||window.webkitAudioContext)();if(ctx.state==='suspended')ctx.resume();return ctx}
+function click(t,acc){const o=ctx.createOscillator(),g=ctx.createGain();o.frequency.value=acc?1500:1000;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.7,t+.002);g.gain.exponentialRampToValueAtTime(.001,t+.07);o.connect(g).connect(ctx.destination);o.start(t);o.stop(t+.08)}
+async function startGame(){
+  const c=audio(),bpm=sel.bpm,iv=60000/bpm,lead=1.2;
+  const lat=(c.baseLatency||0)+(c.outputLatency||0);
+  const t0=c.currentTime+lead;
+  G={bpm,iv,t0p:performance.now()+lead*1000+lat*1000,taps:[],hit:new Set(),on:true};
+  let buf=null;
+  if(sel.src&&sel.licensed){try{const r=await fetch(sel.src);buf=await c.decodeAudioData(await r.arrayBuffer())}catch(e){buf=null}}
+  if(buf){srcNode=c.createBufferSource();srcNode.buffer=buf;srcNode.connect(c.destination);srcNode.start(t0,sel.offset||0)}
+  for(let i=0;i<COUNTIN+SCORED;i++){ if(!buf||i<COUNTIN) click(t0+i*iv/1000,i%4===0) }
+  $('#gBtn').disabled=true;$('#fb').textContent='준비…';
+  raf=requestAnimationFrame(loop);
+}
+function loop(){
+  if(!G||!G.on)return;
+  const now=performance.now(),ph=(now-G.t0p)/G.iv,total=COUNTIN+SCORED;
+  const nb=Math.floor(ph)+1,rem=Math.min(1,Math.max(0,nb-ph));
+  const ring=$('#ring');
+  if(nb<=total&&ph>-1.2){ring.style.opacity=.3+.7*(1-rem);ring.style.transform=`scale(${1+rem*1.7})`}else ring.style.opacity=0;
+  const k=Math.floor(ph);
+  if(k>=0&&k<total){$('#gBar').style.width=Math.max(0,(k-COUNTIN)/SCORED*100)+'%';
+    if(k<COUNTIN)$('#fb').textContent=`카운트인 ${k+1}`;else if($('#fb').dataset.k!=k&&!G.fbHold){}}
+  if(ph>total){endGame();return}
+  raf=requestAnimationFrame(loop);
+}
+function judge(ts){
+  if(!G||!G.on)return;
+  const k=Math.round((ts-G.t0p)/G.iv);
+  if(k<COUNTIN||k>=COUNTIN+SCORED)return;
+  const err=ts-(G.t0p+k*G.iv);
+  G.taps.push({t:ts,k,err});
+  const a=Math.abs(err);
+  const fb=$('#fb');
+  fb.textContent=`${a<=60?'PERFECT':a<=120?'GOOD':err<0?'너무 빨라요':'너무 느려요'}  ${err>=0?'+':''}${Math.round(err)}ms`;
+  fb.style.color=a<=60?'var(--ok)':a<=120?'var(--sky)':'var(--bad)';
+  if(a<=120)G.hit.add(k);
+  const t=$('#target');t.classList.add('hit');setTimeout(()=>t.classList.remove('hit'),90);
+}
+$('#stage').addEventListener('pointerdown',e=>{e.preventDefault();judge(e.timeStamp)});
+$('#gBtn').onclick=startGame;
+$('#gStop').onclick=()=>go('music');
+function stopGame(silent){
+  cancelAnimationFrame(raf);
+  if(G)G.on=false;
+  if(srcNode){try{srcNode.stop()}catch(e){}srcNode=null}
+  if(ctx&&silent){try{ctx.close()}catch(e){}ctx=null}
+  const b=$('#gBtn');if(b)b.disabled=false;
+  const r=$('#ring');if(r)r.style.opacity=0;
+}
+function endGame(){
+  const taps=G.taps.map(x=>Math.round(x.t*1000)/1000);
+  const ses=makeSession('game',taps,G.bpm,G.taps.map(x=>x.err),G.hit.size/SCORED);
+  const g=G;G.on=false;stopGame(true);
+  if(taps.length<4){$('#fb').textContent='터치가 너무 적어요. 다시 도전!';return}
+  store.sessions.push(ses);save();go('result');
+}
+
+/* ===== 4. 무음 테스트 ===== */
+let st=[];
+function silentReset(){st=[];$('#sBpm').textContent='--';$('#sCnt').textContent='0 / 20'}
+$('#sReset').onclick=silentReset;
+$('#pad').addEventListener('pointerdown',e=>{
+  e.preventDefault();
+  if(st.length>=20)return;
+  st.push(e.timeStamp);
+  $('#sCnt').textContent=`${st.length} / 20`;
+  if(st.length>1){const iv=st.slice(1).map((v,i)=>v-st[i]);$('#sBpm').textContent=fmt(60000/mean(iv))}
+  if(st.length===20){
+    store.sessions.push(makeSession('silent',st.slice(),null,null,null));save();
+    setTimeout(()=>go('result'),350);
+  }
+});
+
+/* ===== 5. 결과 분석 ===== */
+function makeSession(type,taps,target,errs,hitRate){
+  const iv=taps.slice(1).map((v,i)=>v-taps[i]);
+  const m=mean(iv);
+  return {type,at:Date.now(),target,taps,iv,avgBpm:60000/m,sd:sd(iv),cv:sd(iv)/m*100,
+    mae:errs?mean(errs.map(Math.abs)):null,hitRate,
+    inRange:iv.filter(x=>x>=500&&x<=600).length/iv.length};
+}
+const grade=cv=>cv<5?'매우 일정':cv<10?'일정함':cv<15?'보통':'들쭉날쭉';
+function sessCard(title,s){
+  if(!s)return `<div class="card"><b>${title}</b><p>아직 기록이 없어요.</p></div>`;
+  const mx=Math.max(...s.iv);
+  return `<div class="card"><b>${title}</b>
+  <div class="stats" style="margin-top:10px">
+   <div class="stat"><b>${fmt(s.avgBpm,1)}</b><span>평균 BPM ${s.avgBpm>=100&&s.avgBpm<=120?'✅ 목표 범위':'⚠️ 범위 밖'}</span></div>
+   <div class="stat"><b>${fmt(s.sd,1)}ms</b><span>간격 표준편차</span></div>
+   <div class="stat"><b>${fmt(s.cv,1)}%</b><span>변동계수 · ${grade(s.cv)}</span></div>
+   <div class="stat"><b>${s.type==='game'?fmt(s.hitRate*100)+'%':fmt(s.inRange*100)+'%'}</b><span>${s.type==='game'?'박자 적중률(±120ms)':'100~120BPM 구간 비율'}</span></div>
+   ${s.mae!=null?`<div class="stat"><b>${fmt(s.mae)}ms</b><span>평균 박자 오차</span></div>`:''}
+  </div>
+  <p>터치 간격(ms) 변화</p><div class="bars">${s.iv.map(v=>`<div class="${v<500||v>600?'x':''}" style="height:${v/mx*100}%"></div>`).join('')}</div>
+  <p class="log">목표 간격 500~600ms(빨강=범위 밖)</p>
+  <details><summary style="color:var(--sky);font-size:14px">터치 시각 기록 (ms)</summary><p class="log">${s.taps.map(t=>t.toFixed(1)).join(' · ')}</p></details></div>`;
+}
+function drawResult(){
+  const sil=store.sessions.filter(s=>s.type==='silent'),gm=store.sessions.filter(s=>s.type==='game');
+  const pre=sil[0],post=sil.length>1?sil[sil.length-1]:null;
+  const row=(l,a,b,f,u)=>`<tr><td>${l}</td><td>${a?f(a):'--'}</td><td>${b?f(b):'--'}</td><td>${a&&b?(()=>{const d=f(b)-f(a);return (d>0?'+':'')+d.toFixed(1)+u})():'--'}</td></tr>`;
+  $('#s-result').innerHTML=`<h2>결과 분석</h2>
+  <div class="card"><b>학습 전 · 후 (무음 테스트)</b>
+   <table><tr><th></th><th>전</th><th>후</th><th>변화</th></tr>
+   ${row('평균 BPM',pre,post,s=>+s.avgBpm.toFixed(1),'')}
+   ${row('간격 편차 ms',pre,post,s=>+s.sd.toFixed(1),'')}
+   ${row('변동계수 %',pre,post,s=>+s.cv.toFixed(1),'')}</table>
+   <p>${post?(post.cv<pre.cv?'🎉 박자가 더 일정해졌어요!':'연습을 더 하면 일정함이 좋아질 거예요.'):'무음 테스트를 2번 이상 하면 전·후 비교가 표시돼요. (첫 번째가 학습 전 기준)'}</p></div>
+  ${sessCard('최근 리듬게임',gm[gm.length-1])}
+  ${sessCard('최근 무음 테스트',sil[sil.length-1])}
+  <div class="card"><b>퀴즈</b><p>${store.quiz?`최근 점수 ${store.quiz.score} / ${store.quiz.total}`:'아직 풀지 않았어요.'}</p></div>
+  <button class="btn" data-go="music">리듬게임 다시 하기</button>
+  <button class="btn sec" id="rst">기록 모두 지우기</button>
+  <div class="warn">교육용 앱이며 실제 응급 대응을 대체하지 않습니다. 오차에는 기기 터치·오디오 지연이 포함될 수 있어요.</div>`;
+  $('#rst').onclick=()=>{if(confirm('모든 기록을 삭제할까요?')){store={sessions:[],quiz:null};save();drawResult()}};
+}
+</script>
+</body>
+</html>
